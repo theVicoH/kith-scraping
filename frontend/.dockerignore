@@ -1,6 +1,7 @@
 node_modules
 .dockerignore
-Dockerfile
+Dockerfile.dev
+Dockerfile.prod
 npm-debug.log
 README.md
 .env*
