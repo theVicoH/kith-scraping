@@ -7,11 +7,16 @@ import Image from 'next/image';
 interface ProductCardProps {
   product: Product;
   isRecentRestock: boolean;
+  isNewProduct: boolean;
 }
 
-export function ProductCard({ product, isRecentRestock }: ProductCardProps) {
+export function ProductCard({ product, isRecentRestock, isNewProduct }: ProductCardProps) {
   if (isRecentRestock) {
     console.log(`RESTOCK DETECTED: ${product.title} (ID: ${product.id})`);
+  }
+  
+  if (isNewProduct) {
+    console.log(`NEW PRODUCT DETECTED: ${product.title} (ID: ${product.id})`);
   }
   
   return (
@@ -19,7 +24,9 @@ export function ProductCard({ product, isRecentRestock }: ProductCardProps) {
       className={`border rounded-lg overflow-hidden shadow-sm transition-all duration-300 ${
         isRecentRestock 
           ? 'ring-2 ring-green-500 animate-pulse shadow-md' 
-          : 'hover:shadow-md'
+          : isNewProduct
+            ? 'ring-2 ring-blue-500 animate-pulse shadow-md'
+            : 'hover:shadow-md'
       }`}
     >
       <div className="relative h-64 w-full bg-muted flex items-center justify-center">
@@ -37,6 +44,11 @@ export function ProductCard({ product, isRecentRestock }: ProductCardProps) {
         {isRecentRestock && (
           <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
             Restock!
+          </div>
+        )}
+        {isNewProduct && (
+          <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+            Nouveau!
           </div>
         )}
       </div>

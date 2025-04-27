@@ -83,3 +83,7 @@ export class SSEService<T> {
 export const createProductRestockSSE = () => {
   return new SSEService<Product>('/api/sse/restocks');
 };
+
+export const createNewProductsSSE = () => {
+  return new SSEService<Product>('/api/sse/new-products');
+};
