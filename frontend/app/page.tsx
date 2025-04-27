@@ -1,4 +1,4 @@
-import { ProductList } from '@/components/product-list';
+import { ProductList } from '@/features/product-list';
 
 export default function Home() {
   return (
