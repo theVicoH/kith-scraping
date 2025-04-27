@@ -34,6 +34,9 @@ func (s *productService) SyncProducts(ctx context.Context, scraped []scraper.Pro
 	}
 
 	var prods []Product
+	var newProductRefs []string
+	var potentialRestockRefs []string
+
 	for _, sp := range scraped {
 		prod := Product{
 			Reference:  sp.Reference,
@@ -50,29 +53,46 @@ func (s *productService) SyncProducts(ctx context.Context, scraped []scraper.Pro
 		prods = append(prods, prod)
 
 		if !existingMap[sp.Reference] && sp.InStock {
-			BroadcastNewProduct(&prod)
+			newProductRefs = append(newProductRefs, sp.Reference)
 			log.Printf("New product detected: %s", prod.Title)
-
 		} else if existingMap[sp.Reference] && sp.InStock {
 			isRestock, err := s.repo.WasOutOfStock(ctx, sp.Reference)
-
 			if err != nil {
 				log.Printf("Error checking previous stock status: %v", err)
 			} else if isRestock {
-				BroadcastRestock(&prod)
+				potentialRestockRefs = append(potentialRestockRefs, sp.Reference)
 				log.Printf("Product restocked: %s", prod.Title)
 			}
 		}
 	}
 
-	if err := s.repo.UpsertProducts(ctx, prods); err != nil {
+	savedProds, err := s.repo.UpsertProducts(ctx, prods)
+	if err != nil {
 		return fmt.Errorf("Service.UpsertProducts: %w", err)
+	}
+
+	prodMap := make(map[string]*Product)
+	for i := range savedProds {
+		prodMap[savedProds[i].Reference] = &savedProds[i]
+	}
+
+	for _, ref := range newProductRefs {
+		if prod, ok := prodMap[ref]; ok {
+			BroadcastNewProduct(prod)
+		}
+	}
+
+	for _, ref := range potentialRestockRefs {
+		if prod, ok := prodMap[ref]; ok {
+			BroadcastRestock(prod)
+		}
 	}
 
 	found := make(map[string]bool)
 	for _, p := range prods {
 		found[p.Reference] = true
 	}
+
 	var missing []string
 	for _, ref := range existingRefs {
 		if !found[ref] {

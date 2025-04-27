@@ -9,7 +9,7 @@ import (
 
 type Repository interface {
 	GetAllReferences(ctx context.Context) ([]string, error)
-	UpsertProducts(ctx context.Context, products []Product) error
+	UpsertProducts(ctx context.Context, products []Product) ([]Product, error)
 	MarkOutOfStock(ctx context.Context, missingRefs []string) error
 	WasOutOfStock(ctx context.Context, reference string) (bool, error)
 	GetAllProducts(ctx context.Context) ([]Product, error)
@@ -41,11 +41,12 @@ func (r *PostgresRepository) GetAllReferences(ctx context.Context) ([]string, er
 	return refs, nil
 }
 
-func (r *PostgresRepository) UpsertProducts(ctx context.Context, products []Product) error {
+func (r *PostgresRepository) UpsertProducts(ctx context.Context, products []Product) ([]Product, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("UpsertProducts.BeginTx: %w", err)
+		return nil, fmt.Errorf("UpsertProducts.BeginTx: %w", err)
 	}
+
 	stmt := `
     INSERT INTO products (reference, title, price, image_url, product_url, category, event_type, event_date, in_stock)
     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
@@ -57,18 +58,30 @@ func (r *PostgresRepository) UpsertProducts(ctx context.Context, products []Prod
         category = EXCLUDED.category,
         event_type = EXCLUDED.event_type,
         event_date = EXCLUDED.event_date,
-        in_stock = EXCLUDED.in_stock;
+        in_stock = EXCLUDED.in_stock
+    RETURNING id;
     `
-	for _, p := range products {
-		if _, err := tx.ExecContext(ctx, stmt,
+
+	result := make([]Product, len(products))
+	copy(result, products)
+
+	for i, p := range products {
+		var id int
+		if err := tx.QueryRowContext(ctx, stmt,
 			p.Reference, p.Title, p.Price, p.ImageURL,
 			p.ProductURL, p.Category, p.EventType, p.EventDate, p.InStock,
-		); err != nil {
+		).Scan(&id); err != nil {
 			tx.Rollback()
-			return fmt.Errorf("UpsertProducts.Exec: %w", err)
+			return nil, fmt.Errorf("UpsertProducts.QueryRow: %w", err)
 		}
+		result[i].ID = id
 	}
-	return tx.Commit()
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("UpsertProducts.Commit: %w", err)
+	}
+
+	return result, nil
 }
 
 func (r *PostgresRepository) MarkOutOfStock(ctx context.Context, missingRefs []string) error {

@@ -44,10 +44,9 @@ func main() {
 	// }
 	// log.Println("scrape_targets initialisées")
 
-
 	productService := app.InitProductService(dbConn.DB)
 
-	go scheduler.StartScheduler(ctx, dbConn.DB, productService, 1*time.Minute)
+	go scheduler.StartScheduler(ctx, dbConn.DB, productService, 10*time.Second)
 
 	productHandler := app.InitProductHandler(productService)
 
