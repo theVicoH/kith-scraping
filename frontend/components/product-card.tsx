@@ -10,23 +10,15 @@ interface ProductCardProps {
   isNewProduct: boolean;
 }
 
-export function ProductCard({ product, isRecentRestock, isNewProduct }: ProductCardProps) {
-  if (isRecentRestock) {
-    console.log(`RESTOCK DETECTED: ${product.title} (ID: ${product.id})`);
-  }
-  
-  if (isNewProduct) {
-    console.log(`NEW PRODUCT DETECTED: ${product.title} (ID: ${product.id})`);
-  }
-  
+export function ProductCard({ product, isRecentRestock, isNewProduct }: ProductCardProps) {  
   return (
     <div 
-      className={`border rounded-lg overflow-hidden shadow-sm transition-all duration-300 ${
+      className={`rounded-lg overflow-hidden transition-all duration-300 ring-2 ${
         isRecentRestock 
-          ? 'ring-2 ring-green-500 animate-pulse shadow-md' 
+          ? 'ring-green-500' 
           : isNewProduct
-            ? 'ring-2 ring-blue-500 animate-pulse shadow-md'
-            : 'hover:shadow-md'
+            ? 'ring-blue-500'
+            : 'ring-gray-100'
       }`}
     >
       <div className="relative h-64 w-full bg-muted flex items-center justify-center">
@@ -35,6 +27,7 @@ export function ProductCard({ product, isRecentRestock, isNewProduct }: ProductC
             src={product.image_url}
             alt={product.title}
             fill
+            priority={true}
             className="object-cover"
             unoptimized={!product.image_url.startsWith('/')}
           />

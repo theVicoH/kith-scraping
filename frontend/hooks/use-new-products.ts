@@ -12,13 +12,19 @@ export function useNewProducts() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    console.log('Initializing new products SSE connection...');
     const sseService = createNewProductsSSE();
     
+    console.log('SSE service created for new products, attempting to connect...');
+    
     sseService.onOpen(() => {
+      console.log('New products SSE connection opened successfully');
       setIsConnected(true);
     });
     
+    
     sseService.onMessage((product) => {
+      console.log('Received new product message:', product);
       setLastNewProduct(product);
       
       setNewProducts(prev => [product, ...prev].slice(0, 10));
@@ -44,13 +50,15 @@ export function useNewProducts() {
       });
     });
     
-    sseService.onError(() => {
+    sseService.onError((error) => {
+      console.error('New products SSE connection error:', error);
       setIsConnected(false);
     });
     
     sseService.connect();
     
     return () => {
+      console.log('Cleaning up new products SSE connection');
       sseService.disconnect();
       setIsConnected(false);
     };

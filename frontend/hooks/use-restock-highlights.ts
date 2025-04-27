@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Product } from '@/types/products.type';
 
-export function useRestockHighlights(lastEvent: Product | null, highlightDuration = 15000) {
+export function useRestockHighlights(lastEvent: Product | null) {
   const [recentRestocks, setRecentRestocks] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -20,20 +20,10 @@ export function useRestockHighlights(lastEvent: Product | null, highlightDuratio
         
         const updated = { ...prev, [productId]: true };
         
-        // Remove product from recent restocks after specified duration
-        setTimeout(() => {
-          console.log('Removing restocked product with ID:', productId);
-          setRecentRestocks(current => {
-            const newState = { ...current };
-            delete newState[productId];
-            return newState;
-          });
-        }, highlightDuration);
-        
         return updated;
       });
     }
-  }, [lastEvent, highlightDuration]);
+  }, [lastEvent]);
 
   return recentRestocks;
 }
