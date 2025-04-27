@@ -39,6 +39,8 @@ func StartScheduler(ctx context.Context, db *sql.DB, prodServ product.Service, i
 			}
 		}
 	}
+	
+	run()
 
 	for {
 		select {

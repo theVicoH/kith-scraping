@@ -44,7 +44,7 @@ func main() {
 
 	productService := app.InitProductService(dbConn.DB)
 
-	go scheduler.StartScheduler(ctx, dbConn.DB, productService, 10*time.Second)
+	go scheduler.StartScheduler(ctx, dbConn.DB, productService, 5*time.Minute)
 
 	productHandler := app.InitProductHandler(productService)
 
