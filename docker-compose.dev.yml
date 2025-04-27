@@ -21,7 +21,7 @@ services:
       context: backend
       dockerfile: Dockerfile.dev
     ports:
-      - "50051:50051"
+      - "8080:8080"
     volumes:
       - ./backend:/app
     env_file:
