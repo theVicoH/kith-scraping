@@ -12,7 +12,7 @@ import (
 
 	"backend/internal/service/scheduler"
 
-	// "backend/internal/service/scraper"
+	"backend/internal/service/scraper"
 
 	"backend/internal/router"
 	"net/http"
@@ -37,12 +37,10 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	// homeScraper := scraper.NewScraper("https://eu.kith.com/")
-	// if err := scraper.BootstrapTargets(ctx, dbConn.DB, homeScraper); err != nil {
-	// 	log.Fatalf("BootstrapTargets: %v", err)
-	// 	fmt.Println("BootstrapTargets: erreur", err)
-	// }
-	// log.Println("scrape_targets initialisées")
+	homeScraper := scraper.NewScraper("https://eu.kith.com/")
+	if err := scraper.BootstrapTargets(ctx, dbConn.DB, homeScraper); err != nil {
+		log.Fatalf("BootstrapTargets: %v", err)
+	}
 
 	productService := app.InitProductService(dbConn.DB)
 
@@ -60,9 +58,9 @@ func main() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server error: %v", err)
 		}
-	}()
-
+	}() 
 	<-ctx.Done()
+
 	log.Println("Shutting down server...")
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)

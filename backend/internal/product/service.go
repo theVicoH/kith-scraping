@@ -100,7 +100,7 @@ func (s *productService) SyncProducts(ctx context.Context, scraped []scraper.Pro
 		}
 	}
 
-	if err := s.repo.MarkOutOfStock(ctx, missing); err != nil {
+	if err := s.repo.MarkOutOfStock(ctx, missing, category); err != nil {
 		return fmt.Errorf("Service.MarkOutOfStock: %w", err)
 	}
 	return nil

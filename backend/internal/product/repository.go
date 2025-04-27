@@ -10,7 +10,7 @@ import (
 type Repository interface {
 	GetAllReferences(ctx context.Context) ([]string, error)
 	UpsertProducts(ctx context.Context, products []Product) ([]Product, error)
-	MarkOutOfStock(ctx context.Context, missingRefs []string) error
+	MarkOutOfStock(ctx context.Context, missingRefs []string, category string) error
 	WasOutOfStock(ctx context.Context, reference string) (bool, error)
 	GetAllProducts(ctx context.Context) ([]Product, error)
 }
@@ -84,23 +84,29 @@ func (r *PostgresRepository) UpsertProducts(ctx context.Context, products []Prod
 	return result, nil
 }
 
-func (r *PostgresRepository) MarkOutOfStock(ctx context.Context, missingRefs []string) error {
+func (r *PostgresRepository) MarkOutOfStock(ctx context.Context, missingRefs []string, category string) error {
 	if len(missingRefs) == 0 {
 		return nil
 	}
+
 	placeholders := make([]string, len(missingRefs))
 	args := make([]interface{}, len(missingRefs))
+
 	for i, ref := range missingRefs {
 		placeholders[i] = fmt.Sprintf("$%d", i+1)
 		args[i] = ref
 	}
 	query := fmt.Sprintf(
-		"UPDATE products SET in_stock = FALSE WHERE reference IN (%s)",
+		"UPDATE products SET in_stock = FALSE WHERE reference IN (%s) AND category = $%d",
 		strings.Join(placeholders, ","),
+		len(missingRefs)+1,
 	)
+	args = append(args, category)
+
 	if _, err := r.db.ExecContext(ctx, query, args...); err != nil {
 		return fmt.Errorf("MarkOutOfStock: %w", err)
 	}
+
 	return nil
 }
 
