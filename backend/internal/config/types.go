@@ -1,8 +1,5 @@
 package config
 
-// Config represents the application configuration
-
-// DatabaseConfig represents database-specific configuration
 type DatabaseConfig struct {
 	Name     string `env:"NAME" required:"true"`
 	Host     string `env:"HOST required:"true"`

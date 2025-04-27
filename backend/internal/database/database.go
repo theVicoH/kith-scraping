@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"backend/internal/config"
 	"backend/internal/config/types"
 
 	_ "github.com/lib/pq"
@@ -16,8 +15,8 @@ type Connection struct {
 	DB *sql.DB
 }
 
-func NewDatabaseClient(cfg *config.Config) (*Connection, error) {
-	db, err := sql.Open("postgres", dns(cfg.Database))
+func NewDatabaseClient(cfg types.DatabaseConfig) (*Connection, error) {
+	db, err := sql.Open("postgres", dns(cfg))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
@@ -34,7 +33,6 @@ func NewDatabaseClient(cfg *config.Config) (*Connection, error) {
 	}
 
 	fmt.Println("Database connection established successfully")
-
 	return &Connection{DB: db}, nil
 }
 
